@@ -19,6 +19,10 @@ pipeline {
         script {
           docker.build(FULL_IMAGE)
         }
+  stages {
+    stage('Build Docker Image') {
+      steps {
+        sh 'docker build -t jeeva/devops-demo:latest .'
       }
     }
 
@@ -28,6 +32,11 @@ pipeline {
           docker.withRegistry('', 'dockerhub-creds') {
             docker.image(FULL_IMAGE).push()
           }
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+          sh '''
+            echo "" | docker login -u "" --password-stdin
+            docker push jeeva/devops-demo:latest
+          '''
         }
       }
     }
@@ -53,3 +62,11 @@ pipeline {
   }
 }
 
+        sh '''
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
+        '''
+      }
+    }
+  }
+}

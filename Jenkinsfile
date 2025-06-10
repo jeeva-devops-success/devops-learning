@@ -8,7 +8,7 @@ pipeline {
   }
 
   stages {
-    stage('Checkout Code') {
+    stage('Checkout') {
       steps {
         git url: 'https://github.com/jeeva-devops-success/devops-learning.git', branch: 'main'
       }
@@ -48,8 +48,8 @@ pipeline {
   }
 
   post {
-    failure { echo "🚨 Pipeline failed—check the console output!" }
-    success { echo "✅ Docker image pushed and deployed: ${FULL_IMAGE}" }
+    failure { echo "🚨 Pipeline failed—check console!" }
+    success { echo "✅ Image pushed and deployment updated: ${FULL_IMAGE}" }
   }
 }
 

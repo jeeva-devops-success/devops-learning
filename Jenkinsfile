@@ -9,6 +9,8 @@ pipeline {
 
   stages {
     stage('Checkout') {
+=======
+    stage('Checkout Code') {
       steps {
         git url: 'https://github.com/jeeva-devops-success/devops-learning.git', branch: 'main'
       }
@@ -19,6 +21,10 @@ pipeline {
         script {
           docker.build(FULL_IMAGE)
         }
+  stages {
+    stage('Build Docker Image') {
+      steps {
+        sh 'docker build -t jeeva/devops-demo:latest .'
       }
     }
 
@@ -28,6 +34,11 @@ pipeline {
           docker.withRegistry('', 'dockerhub-creds') {
             docker.image(FULL_IMAGE).push()
           }
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+          sh '''
+            echo "" | docker login -u "" --password-stdin
+            docker push jeeva/devops-demo:latest
+          '''
         }
       }
     }
@@ -53,3 +64,16 @@ pipeline {
   }
 }
 
+    failure { echo "🚨 Pipeline failed—check the console output!" }
+    success { echo "✅ Docker image pushed and deployed: ${FULL_IMAGE}" }
+  }
+}
+
+        sh '''
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
+        '''
+      }
+    }
+  }
+}

@@ -31,6 +31,20 @@ pipeline {
         }
       }
     }
+    
+    stage('Deploy to Kubernetes') {
+      steps {
+        script {
+          sh """
+            kubectl set image deployment/devops-demo \
+              devops-container=${FULL_IMAGE} \
+              --namespace=default
+            kubectl rollout status deployment/devops-demo \
+              --namespace=default
+          """
+        }
+      }
+    }
   }
 
   post {

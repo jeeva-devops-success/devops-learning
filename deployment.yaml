@@ -13,7 +13,5 @@ spec:
         app: devops-demo
     spec:
       containers:
-      - name: devops-container
-        image: jeeva/devops-demo:latest
-        ports:
-        - containerPort: 80
+        - name: devops-container
+          image: jeevan073/devops-demo:latest

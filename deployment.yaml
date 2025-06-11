@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: devops-container
-        image: jeevan073/devops-demo:latest
+        image: jeevan073/devops-demo:17    # ← Must match pushed image ID
         ports:
         - containerPort: 80

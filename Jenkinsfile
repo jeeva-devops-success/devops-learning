@@ -7,34 +7,39 @@ pipeline {
   }
   stages {
     stage('Checkout') {
-      steps { git url: 'https://github.com/jeeva-devops-success/devops-learning.git', branch: 'main' }
-    }
-    stage('Build') {
       steps {
-        sh 'docker build -t $FULL_IMAGE .'
+        git url: 'https://github.com/jeeva-devops-success/devops-learning.git', branch: 'main'
       }
     }
-    stage('Push') {
+    stage('Build Image') {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable:'DOCKER_USER', passwordVariable:'DOCKER_PASS')]) {
+        sh "docker build -t ${FULL_IMAGE} ."
+      }
+    }
+    stage('Push Image') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
           sh '''
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-            docker push $FULL_IMAGE
+            docker push ${FULL_IMAGE}
           '''
         }
       }
     }
-    stage('Deploy to k8s') {
+    stage('Deploy to Kubernetes') {
       steps {
-        sh '''
-          kubectl set image deployment/devops-demo devops-container=$FULL_IMAGE
-          kubectl rollout status deployment/devops-demo
-        '''
+        withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG_FILE')]) {
+          sh '''
+            export KUBECONFIG=$KUBECONFIG_FILE
+            kubectl set image deployment/devops-demo devops-container=${FULL_IMAGE} --namespace=default
+            kubectl rollout status deployment/devops-demo --namespace=default
+          '''
+        }
       }
     }
   }
   post {
     success { echo "✅ Deployed ${FULL_IMAGE} to Kubernetes" }
-    failure { echo "🚨 Pipeline failed" }
+    failure { echo "🚨 Pipeline failed – see console logs" }
   }
 }

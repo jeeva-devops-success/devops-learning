@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    IMAGE_NAME = "jeeva/devops-demo"
+    IMAGE_NAME = "jeevan073/devops-demo"
     IMAGE_TAG  = "${BUILD_NUMBER}"
     FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
   }

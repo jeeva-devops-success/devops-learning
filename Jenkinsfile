@@ -1,50 +1,40 @@
 pipeline {
   agent any
-
   environment {
-    IMAGE_NAME = "jeevan073/devops-demo"
+    IMAGE_NAME = 'jeevan073/devops-demo'
     IMAGE_TAG  = "${BUILD_NUMBER}"
     FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
   }
-
   stages {
     stage('Checkout') {
+      steps { git url: 'https://github.com/jeeva-devops-success/devops-learning.git', branch: 'main' }
+    }
+    stage('Build') {
       steps {
-        git url: 'https://github.com/jeeva-devops-success/devops-learning.git', branch: 'main'
+        sh 'docker build -t $FULL_IMAGE .'
       }
     }
-
-    stage('Build Docker Image') {
+    stage('Push') {
       steps {
-        script {
-          docker.build(FULL_IMAGE)
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable:'DOCKER_USER', passwordVariable:'DOCKER_PASS')]) {
+          sh '''
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            docker push $FULL_IMAGE
+          '''
         }
       }
     }
-
-    stage('Push to Docker Hub') {
+    stage('Deploy to k8s') {
       steps {
-        script {
-          docker.withRegistry('', 'dockerhub-creds') {
-            docker.image(FULL_IMAGE).push()
-          }
-        }
-      }
-    }
-    
- stage('Deploy')   {
-      steps {
-        withKubeConfig([credentialsId: 'kube-sa-token']) {
-          sh 'kubectl apply -f deployment.yaml'
-          sh 'kubectl set image deployment/devops-demo devops-container=$FULL'
-          sh 'kubectl rollout status deployment/devops-demo'
-        }
+        sh '''
+          kubectl set image deployment/devops-demo devops-container=$FULL_IMAGE
+          kubectl rollout status deployment/devops-demo
+        '''
       }
     }
   }
-
   post {
-    failure { echo "🚨 Pipeline failed—check console!" }
-    success { echo "✅ Image pushed and deployment updated: ${FULL_IMAGE}" }
+    success { echo "✅ Deployed ${FULL_IMAGE} to Kubernetes" }
+    failure { echo "🚨 Pipeline failed" }
   }
 }

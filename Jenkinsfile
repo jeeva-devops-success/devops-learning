@@ -25,7 +25,7 @@ pipeline {
     stage('Push to Docker Hub') {
       steps {
         script {
-          docker.withRegistry('', 'jeevan073') {
+          docker.withRegistry('', 'dockerhub-creds') {
             docker.image(FULL_IMAGE).push()
           }
         }

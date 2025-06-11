@@ -32,16 +32,13 @@ pipeline {
       }
     }
     
-    stage('Deploy to Kubernetes') {
+     stage('Deploy to Kubernetes') {
       steps {
         script {
-          sh """
-            kubectl set image deployment/devops-demo \
-              devops-container=${FULL_IMAGE} \
-              --namespace=default
-            kubectl rollout status deployment/devops-demo \
-              --namespace=default
-          """
+          sh '''
+            kubectl apply -f deployment.yaml
+            kubectl apply -f service.yaml
+          '''
         }
       }
     }

@@ -27,16 +27,14 @@ pipeline {
       }
     }
     stage('Deploy to Kubernetes') {
-      steps {
-        withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG_FILE')]) {
-          sh '''
-            export KUBECONFIG=$KUBECONFIG_FILE
-            kubectl set image deployment/devops-demo devops-container=${FULL_IMAGE} --namespace=default
-            kubectl rollout status deployment/devops-demo --namespace=default
-          '''
-        }
-      }
-    }
+  steps {
+    sh '''
+      eval $(minikube -p minikube docker-env)
+      kubectl set image deployment/devops-demo devops-container=$FULL_IMAGE --namespace=default
+      kubectl rollout status deployment/devops-demo --namespace=default
+    '''
+  }
+}
   }
   post {
     success { echo "✅ Deployed ${FULL_IMAGE} to Kubernetes" }

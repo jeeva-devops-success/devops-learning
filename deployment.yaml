@@ -12,9 +12,7 @@ spec:
       labels:
         app: devops-demo
     spec:
-      containers:
-      - name: devops-container
-        image: jeevan073/devops-demo:22      # must match your pushed tag
-        imagePullPolicy: Always              # ensures Kubernetes always pulls latest
-      imagePullSecrets:                      # if your repo is private (Docker Hub public doesn't need this)
-      - name: your-docker-secret
+  containers:
+    - name: devops-container
+      image: jeevan073/devops-demo:27  # <-- use this exact tag
+      imagePullPolicy: Always

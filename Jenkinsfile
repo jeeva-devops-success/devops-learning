@@ -22,17 +22,15 @@ pipeline {
         }
       }
     }
-    stage('Deploy to Kubernetes') {
-      steps {
-        withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
-          sh '''
-            export KUBECONFIG="$KUBECONFIG"
-            kubectl set image deployment/devops-demo devops-container=$FULL_IMAGE --record
-            kubectl rollout status deployment/devops-demo
-          '''
-        }
-      }
-    }
+   stage('Deploy to Kubernetes') {
+  steps {
+    sh '''
+      kubectl apply -f deployment.yaml
+      kubectl set image deployment/devops-demo devops-container=$FULL_IMAGE
+      kubectl rollout status deployment/devops-demo
+    '''
+  }
+}
   }
   post {
     success { echo "✅ Deployed $FULL_IMAGE to Kubernetes" }

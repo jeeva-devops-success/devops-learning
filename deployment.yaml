@@ -13,7 +13,8 @@ spec:
       labels:
         app: devops-demo
     spec:
-  containers:
-    - name: devops-container
-      image: jeevan073/devops-demo:27  # <-- use this exact tag
-      imagePullPolicy: Always
+      containers:
+      - name: devops-container
+        image: jeevan073/devops-demo:27
+        imagePullPolicy: Always
+

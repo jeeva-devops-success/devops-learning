@@ -14,25 +14,21 @@ pipeline {
     }
     stage('Push to Docker Hub') {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
-                                          usernameVariable: 'DOCKER_USER',
-                                          passwordVariable: 'DOCKER_PASS')]) {
+        withCredentials([usernamePassword(credentialsId:'dockerhub-creds', usernameVariable:'DOCKER_USER', passwordVariable:'DOCKER_PASS')]) {
           sh '''
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
             docker push $FULL_IMAGE
           '''
         }
       }
     }
-    stage('Deploy to k8s') {
+    stage('Deploy to Kubernetes') {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
           sh '''
-            export KUBECONFIG=$KUBECONFIG
-            kubectl set image deployment/devops-demo \
-              devops-container=$FULL_IMAGE \
-              --namespace=default
-            kubectl rollout status deployment/devops-demo --namespace=default
+            export KUBECONFIG="$KUBECONFIG"
+            kubectl set image deployment/devops-demo devops-container=$FULL_IMAGE --record
+            kubectl rollout status deployment/devops-demo
           '''
         }
       }
@@ -40,6 +36,6 @@ pipeline {
   }
   post {
     success { echo "✅ Deployed $FULL_IMAGE to Kubernetes" }
-    failure { echo "🚨 Pipeline failed" }
+    failure { echo "🚨 Pipeline failed—check console!" }
   }
 }

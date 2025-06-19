@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
       - name: devops-container
-        image: jeevan073/devops-demo:27
+        image: jeevan073/devops-demo:32
         imagePullPolicy: Always
 

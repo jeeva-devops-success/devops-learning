@@ -7,38 +7,33 @@ pipeline {
   }
   stages {
     stage('Checkout') {
+      steps { git url: 'https://github.com/jeeva-devops-success/devops-learning.git' }
+    }
+    stage('Start Minikube') {
       steps {
-        git branch: 'main', url: 'https://github.com/jeeva-devops-success/devops-learning.git'
+        sh '''
+          minikube start
+          eval $(minikube docker-env)
+        '''
       }
     }
     stage('Build Docker Image') {
-      steps {
-        sh 'docker build -t $FULL_IMAGE .'
-      }
-    }
-    stage('Push to Docker Hub') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable:'DOCKER_USER', passwordVariable:'DOCKER_PASS')]) {
-          sh '''
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-            docker push $FULL_IMAGE
-          '''
-        }
-      }
+      steps { sh 'docker build -t $FULL_IMAGE .' }
     }
     stage('Deploy to Kubernetes') {
       steps {
-        withKubeConfig(credentialsId: 'kubeconfig-file') {
-          sh '''
-            kubectl set image deployment/devops-demo devops-container=$FULL_IMAGE --namespace=default
-            kubectl rollout status deployment/devops-demo --namespace=default
-          '''
-        }
+        sh '''
+          kubectl set image deployment/devops-demo \
+            devops-container=$FULL_IMAGE \
+            --namespace=default
+          kubectl rollout status deployment/devops-demo \
+            --namespace=default
+        '''
       }
     }
   }
   post {
-    success { echo "✅ Successfully deployed ${FULL_IMAGE} to Kubernetes" }
-    failure { echo "🚨 Pipeline failed" }
+    success { echo "✅ Deployed $FULL_IMAGE successfully!" }
+    failure { echo "🚨 Pipeline failed!" }
   }
 }
